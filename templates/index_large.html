@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCC Coverage Map (Dynamic Hex)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h2>FCC Coverage Map</h2>
+            <span class="header-badge">Dynamic Hex</span>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Upload Provider Data</h3>
+            <div id="upload-area" class="upload-area">
+                <p>Drag &amp; drop CSV files here<br>or click to browse</p>
+                <input type="file" id="file-input" accept=".csv" multiple style="display:none">
+            </div>
+            <div id="upload-progress" class="progress-bar" style="display:none">
+                <div class="progress-fill"></div>
+                <span class="progress-text">Processing...</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section" id="zoom-info">
+            <h3>Zoom &amp; Hex Level</h3>
+            <div class="zoom-indicator">
+                <div class="zoom-row">
+                    <span class="zoom-label">Zoom:</span>
+                    <span id="zoom-level" class="zoom-value">5.0</span>
+                </div>
+                <div class="zoom-row">
+                    <span class="zoom-label">Hex Level:</span>
+                    <span id="hex-level" class="zoom-value hex-badge">5</span>
+                </div>
+            </div>
+            <div class="zoom-scale">
+                <div class="zoom-step">z &le; 7 &rarr; H3 res 5</div>
+                <div class="zoom-step">z &le; 9 &rarr; H3 res 6</div>
+                <div class="zoom-step">z &le; 11 &rarr; H3 res 7</div>
+                <div class="zoom-step">z &gt; 11 &rarr; H3 res 8</div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Providers</h3>
+            <div id="provider-list" class="provider-list">
+                <p class="empty-state">No providers loaded yet.</p>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Technology Filter</h3>
+            <div id="tech-filters" class="filter-group">
+                <label class="filter-checkbox">
+                    <input type="checkbox" value="fiber" checked>
+                    <span class="tech-dot fiber"></span> Fiber (FTTP)
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" value="cable" checked>
+                    <span class="tech-dot cable"></span> Coaxial Cable
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" value="copper" checked>
+                    <span class="tech-dot copper"></span> Copper/DSL
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" value="wireless" checked>
+                    <span class="tech-dot wireless"></span> Fixed Wireless
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" value="satellite" checked>
+                    <span class="tech-dot satellite"></span> Satellite
+                </label>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>Min Download Speed</h3>
+            <div class="speed-filter">
+                <input type="range" id="speed-slider" min="0" max="10000" value="0" step="25">
+                <span id="speed-label">0 Mbps</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/static/js/map_large.js"></script>
+</body>
+</html>

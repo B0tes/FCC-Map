@@ -1,0 +1,4 @@
+flask
+h3
+pandas
+gunicorn
