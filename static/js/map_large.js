@@ -296,7 +296,10 @@ function updateProviderList() {
             return `
             <div class="provider-card">
                 <div class="provider-header">
-                    <span class="color-swatch" style="background:${d.color}"></span>
+                    <span class="color-swatch" style="background:${prov.color}">
+                        <input type="color" value="${prov.color}"
+                               onchange="changeProviderColor('${id}', this.value)">
+                    </span>
                     <strong>${d.brand_name}</strong>
                     <span class="provider-state">${d.states.join(", ")}</span>
                 </div>
@@ -350,6 +353,30 @@ function removeProvider(id) {
     updateProviderList();
 }
 
+function changeProviderColor(id, newColor) {
+    const prov = providerData[id];
+    if (!prov) return;
+
+    // Update color in state
+    prov.color = newColor;
+    prov.meta.color = newColor;
+
+    // Rebuild the map layer with the new color
+    if (prov.visible && prov.activeLayer) {
+        map.removeLayer(prov.activeLayer);
+        const h3Res = getH3ResForZoom(map.getZoom());
+        const layer = createLayer(id, h3Res);
+        if (layer) {
+            layer.addTo(map);
+        }
+        prov.activeLayer = layer;
+        prov.activeRes = h3Res;
+    }
+
+    // Refresh the sidebar to update the swatch
+    updateProviderList();
+}
+
 // ---- Filter Controls ----
 document.querySelectorAll("#tech-filters input[type=checkbox]").forEach((cb) => {
     cb.addEventListener("change", () => {
@@ -375,3 +402,74 @@ speedSlider.addEventListener("change", () => {
     speedLabel.textContent = minSpeed + " Mbps";
     refreshAllLayers();
 });
+
+// ---- PPTX Export ----
+function exportPptx() {
+    const btn = document.getElementById("export-pptx-btn");
+    const status = document.getElementById("export-status");
+
+    // Collect visible providers and their current colors
+    const visibleProviders = [];
+    for (const id in providerData) {
+        const prov = providerData[id];
+        if (prov.visible) {
+            visibleProviders.push({
+                id: id,
+                color: prov.color,
+            });
+        }
+    }
+
+    if (visibleProviders.length === 0) {
+        status.textContent = "No visible providers to export.";
+        setTimeout(() => (status.textContent = ""), 3000);
+        return;
+    }
+
+    // Collect current filter state
+    const techFilters = Array.from(activeTechFilters);
+
+    const payload = {
+        providers: visibleProviders,
+        tech_filters: techFilters,
+        min_speed: minSpeed,
+    };
+
+    btn.disabled = true;
+    status.textContent = "Generating PPTX...";
+
+    fetch("/api/export-pptx", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    })
+        .then((response) => {
+            if (!response.ok) {
+                return response.json().then((err) => {
+                    throw new Error(err.error || "Export failed");
+                });
+            }
+            return response.blob();
+        })
+        .then((blob) => {
+            // Trigger download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "fcc_coverage_export.pptx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            status.textContent = "Export complete!";
+            setTimeout(() => (status.textContent = ""), 3000);
+        })
+        .catch((err) => {
+            status.textContent = "Error: " + err.message;
+            setTimeout(() => (status.textContent = ""), 5000);
+        })
+        .finally(() => {
+            btn.disabled = false;
+        });
+}

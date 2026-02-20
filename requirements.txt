@@ -2,3 +2,5 @@ flask
 h3
 pandas
 gunicorn
+python-pptx
+lxml
