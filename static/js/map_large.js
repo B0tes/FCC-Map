@@ -361,9 +361,14 @@ function changeProviderColor(id, newColor) {
     prov.color = newColor;
     prov.meta.color = newColor;
 
-    // Rebuild the map layer with the new color
-    if (prov.visible && prov.activeLayer) {
+    // Remove old layer if it exists
+    if (prov.activeLayer) {
         map.removeLayer(prov.activeLayer);
+        prov.activeLayer = null;
+    }
+
+    // Rebuild the map layer with the new color if visible
+    if (prov.visible) {
         const h3Res = getH3ResForZoom(map.getZoom());
         const layer = createLayer(id, h3Res);
         if (layer) {
@@ -373,8 +378,13 @@ function changeProviderColor(id, newColor) {
         prov.activeRes = h3Res;
     }
 
-    // Refresh the sidebar to update the swatch
-    updateProviderList();
+    // Update only the swatch background, avoid full re-render
+    const swatch = document.querySelector(
+        `.provider-card .color-swatch input[onchange*="'${id}'"]`
+    );
+    if (swatch) {
+        swatch.parentElement.style.background = newColor;
+    }
 }
 
 // ---- Filter Controls ----
